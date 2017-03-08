@@ -10,6 +10,13 @@ var budgetController = (function() {
     this.description = description;
     this.value = value;
   };
+  var calculateTotal = function(type) {
+    var sum = 0;
+    data.allItems[type].forEach(function(cur) {
+      sum += cur.value;
+    });
+    data.totals[type] = sum;
+  };
   var data = {
     allItems: {
       expense: [],
@@ -18,7 +25,9 @@ var budgetController = (function() {
     totals: {
       expense: 0,
       income: 0
-    }
+    },
+    budget: 0,
+    percentage: -1
   };
   return {
     addItem: function(type, des, val) {
@@ -42,6 +51,27 @@ var budgetController = (function() {
       data.allItems[type].push(newItem);
       // Return new Element
       return newItem;
+    },
+    calculateBudget: function() {
+      //calculate total income and expenses
+      calculateTotal('expense');
+      calculateTotal('income');
+      //calculate budget: inc - exp
+      data.budget = data.totals.income - data.totals.expense;
+      //calculate % of income we spent
+      if (data.totals.inc > 0){
+      data.percentage = Math.round((data.totals.expense / data.totals.income) * 100);
+      } else {
+        data.percentage = -1;
+      }
+    },
+    getBudget: function() {
+      return {
+        budget: data.budget,
+        totalIncome: data.totals.income,
+        totalExpense: data.totals.expense,
+        percentage: data.percentage
+      };
     },
     testing: function() {
       console.log(data);
@@ -119,16 +149,18 @@ var controller = (function(budgetCtrl, UICtrl) {
 };
   var updateBudget = function() {
     //1. Calculate budget
-
+    budgetCtrl.calculateBudget();
     //2. Return budget
-
+    var budget = budgetCtrl.getBudget();
     //3. Display budget
+    console.log(budget);
   };
   var ctrlAddItem = function() {
     var input, newItem;
 
     // 1. Get input data
     input = UICtrl.getInput();
+    //Verify data is correct
     if (input.description !== "" && !isNaN(input.value) && input.value > 0) {
     //2. Add item to budget controller
     newItem = budgetCtrl.addItem(input.type, input.description, input.value);
