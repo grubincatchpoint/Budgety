@@ -126,7 +126,8 @@ var DOMstrings = {
   expensesLabel: '.budget__expenses--value',
   percentageLabel: '.budget__expenses--percentage',
   container: '.container',
-  expensesPercLabel: '.item__percentage'
+  expensesPercLabel: '.item__percentage',
+  dateLabel: '.budget__title--month'
 };
 var formatNumber = function(num, type) {
       var numSplit, int, dec;
@@ -140,7 +141,11 @@ var formatNumber = function(num, type) {
       }
       return (type === 'expense' ? '-' : '+') + ' ' + int + '.' + dec;
     };
-
+    var nodeListForEach = function(list, callback) {
+        for (var i = 0; i < list.length; i++) {
+            callback(list[i], i);
+        }
+    };
   return {
     getInput: function() {
       return {
@@ -206,6 +211,24 @@ var formatNumber = function(num, type) {
         }
       });
     },
+    displayMonth: function() {
+        var now, months, month, year;
+        now = new Date();
+        months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        month = now.getMonth();
+        year = now.getFullYear();
+        document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ' ' + year;
+    },
+    changedType: function() {
+        var fields = document.querySelectorAll(
+            DOMstrings.inputType + ',' +
+            DOMstrings.inputDescription + ',' +
+            DOMstrings.inputValue);
+            nodeListForEach(fields, function(cur) {
+                cur.classList.toggle('red-focus');
+            });
+            document.querySelector(DOMstrings.inputBtn).classList.toggle('red');
+    },
     getDOMstrings: function() {
       return DOMstrings;
     }
@@ -228,6 +251,7 @@ var controller = (function(budgetCtrl, UICtrl) {
     }
   });
   document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+  document.querySelector(DOM.inputType).addEventListener('change', UICtrl.changedType);
 };
   var updateBudget = function() {
     //1. Calculate budget
@@ -283,6 +307,7 @@ var controller = (function(budgetCtrl, UICtrl) {
   };
    return {
       init: function() {
+          UICtrl.displayMonth();
         UICtrl.displayBudget({
           budget: 0,
           totalIncome: 0,
